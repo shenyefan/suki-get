@@ -48,13 +48,45 @@ npm run dev
 npm run deploy
 ```
 
+## Docker 镜像自动发布
+
+`.github/workflows/publish-image.yml` 通过 GitHub Actions 自动发布到
+`ghcr.io/shenyefan/suki-get`，同时提供 AMD64 和 ARM64 镜像：
+
+- 向默认主分支（`master` / `main`）推送：更新 `latest`。
+- 推送版本标签（如 `v1.0.0`）：发布 `1.0.0`、`1.0` 版本镜像。
+- 每次发布同时生成 `sha-` 开头的提交标签，便于固定版本。
+- 也可在仓库 **Actions → Publish Docker image → Run workflow** 手动运行。
+
+使用 GitHub 内置
+`GITHUB_TOKEN`，无需配置个人令牌。将工作流提交并推送到 GitHub 后即可触发；首次发布成功后，在 GitHub 个人主页的
+**Packages → suki-get → Package settings → Change visibility** 中将镜像设为
+**Public**，才能匿名拉取。详见
+[GitHub 容器镜像仓库说明](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)。
+
 ## Docker 自托管
 
+首次自动发布成功且镜像设为公开后，可直接拉取运行：
+
 ```bash
-docker compose up --build -d
+docker pull ghcr.io/shenyefan/suki-get:latest
+docker run -d --name suki-get -p 8080:8080 --restart unless-stopped ghcr.io/shenyefan/suki-get:latest
 ```
 
-访问 `http://localhost:8080`。或手动构建运行：
+也可使用仓库提供的 Compose：
+
+```bash
+docker compose up -d
+```
+
+访问 `http://localhost:8080`。更新已部署的镜像：
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+如需从源码本地构建：
 
 ```bash
 docker build -t suki-get .

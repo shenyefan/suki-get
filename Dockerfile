@@ -1,5 +1,5 @@
 # --- Stage 1: build the Worker with Wrangler -----------------------
-FROM node:26-alpine AS builder
+FROM node:26-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -13,6 +13,10 @@ RUN npm run build:docker
 
 # --- Stage 2: minimal runtime with workerd -------------------------
 FROM debian:bookworm-slim AS runtime
+
+LABEL org.opencontainers.image.source="https://github.com/shenyefan/suki-get" \
+      org.opencontainers.image.description="Suki Get developer resource accelerator" \
+      org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
 # Install TLS certificates and shared libraries required by the workerd binary
 RUN apt-get update && \

@@ -11,3 +11,4 @@ dist/
 *.log
 *.md
 .DS_Store
+.github/
