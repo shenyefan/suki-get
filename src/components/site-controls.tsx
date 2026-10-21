@@ -24,9 +24,14 @@ export function SiteBrand() {
   return (
     <Button asChild variant='ghost' className='brand-link' aria-label='Suki Get 首页'>
       <Link to='/'>
-        <svg aria-hidden='true' width='28' height='28' viewBox='0 0 28 28' fill='none'>
-          <path d='M23 4H10L4 14h14L12 24H4M24 14l-6 10' stroke='currentColor' strokeWidth='1.6' />
-        </svg>
+        <img
+          src='/brand-mark.svg'
+          alt=''
+          aria-hidden='true'
+          width='28'
+          height='28'
+          className='brand-mark'
+        />
         <span>Suki Get</span>
       </Link>
     </Button>

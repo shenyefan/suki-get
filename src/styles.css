@@ -162,7 +162,7 @@
   letter-spacing: -0.6px;
   font-weight: 400;
 }
-.brand-link svg {
+.brand-link .brand-mark {
   width: 28px !important;
   height: 28px !important;
 }
@@ -985,4 +985,8 @@
   color: var(--muted-foreground);
   font-size: 11px;
   line-height: 22px;
+}
+
+:root[data-theme='light'] .brand-mark {
+  filter: invert(1);
 }

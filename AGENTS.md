@@ -22,6 +22,13 @@ workerd 部署。
 | `src/server/proxy/upstream/`  | 上游通信：生成请求选项、转发、超时、重试、匿名容器令牌重试、缓存策略与缓存读取。                                                                |
 | `src/server/proxy/utils/`     | 代理链内复用的请求校验、CORS、安全头、性能监测和文本改写工具。此处是服务端工具，不供页面导入。                                                  |
 
+### 静态资源 `public/`
+
+存放站点品牌图标与浏览器图标，构建时原样复制并同时用于 Cloudflare 和 Docker。`brand-mark.svg`
+用于页面品牌，`favicon.svg` 和 `favicon.ico`
+用于浏览器标签，`apple-touch-icon.png` 用于手机收藏，`icon-512.png`
+是高分辨率图标。品牌使用字母 S、前进箭头与短速度线的黑白设计。
+
 ### 构建脚本与生成目录
 
 | 目录                 | 用途与维护方式                                                                                                  |
