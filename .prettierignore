@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.wrangler/
+.tanstack/
+.git/
+.idea/
+.vscode/
+src/routeTree.gen.ts

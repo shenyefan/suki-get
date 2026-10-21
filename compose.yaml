@@ -1,0 +1,10 @@
+services:
+  suki-get:
+    build: .
+    ports:
+      - '8080:8080'
+    environment:
+      TIMEOUT_SECONDS: '30'
+      MAX_RETRIES: '3'
+      CACHE_DURATION: '300'
+    restart: unless-stopped

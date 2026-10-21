@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.wrangler/
+.tanstack/
+.env
+.env.*
+.dev.vars*
+*.log
+*.tsbuildinfo
+*.tgz
+.DS_Store
+.idea/
+.vscode/
+.npm/
