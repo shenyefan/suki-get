@@ -129,3 +129,231 @@ export const examples: Record<string, string> = {
   'cr-docker': 'https://registry-1.docker.io/v2/library/nginx/manifests/latest',
   'cr-ghcr': 'https://ghcr.io/v2/homebrew/core/wget/manifests/latest'
 };
+
+export interface UsageExample {
+  title?: string;
+  original: string;
+  accelerated: string;
+}
+
+/** Builds client commands and source configuration using the shared route prefix. */
+function singlePlatformUsage(key: string, origin: string): UsageExample | undefined {
+  const platform = platforms.find(item => item.key === key);
+  if (!platform) return;
+  const prefix = `${origin}${platform.pathPrefix}`;
+  if (platform.category === 'container') {
+    const images: Record<string, string> = {
+      'cr-docker': 'library/nginx:latest',
+      'cr-ghcr': '<命名空间>/<镜像名>:<标签>',
+      'cr-quay': 'prometheus/prometheus:latest',
+      'cr-mcr': 'dotnet/runtime:8.0',
+      'cr-k8s': 'pause:3.10'
+    };
+    const image = images[key] || '<命名空间>/<镜像名>:<标签>';
+    const upstreamHost = new URL(platform.upstream).host;
+    return {
+      original: `docker pull ${upstreamHost}/${image}`,
+      accelerated: `docker pull ${prefix.replace(/^https?:\/\//, '')}${image}`
+    };
+  }
+  const commands: Record<string, (base: string) => string> = {
+    npm: base => `npm install react --registry=${base}`,
+    pypi: base => `pip install requests --index-url ${base}simple/`,
+    conda: base => `conda install numpy --override-channels --channel ${base}pkgs/main/`,
+    'conda-community': base =>
+      `conda install numpy --override-channels --channel ${base}conda-forge/`,
+    rubygems: base => `gem install bundler --clear-sources --source ${base}`,
+    cran: base => `install.packages("ggplot2", repos = "${base}")`,
+    golang: base => `GOPROXY=${base} go mod download`,
+    nuget: base => `dotnet add package Newtonsoft.Json --source ${base}v3/index.json`,
+    debian: base => `deb ${base}debian bookworm main`,
+    ubuntu: base => `deb ${base}ubuntu noble main universe`,
+    arch: base => `Server = ${base}$repo/os/$arch`,
+    maven: base =>
+      `<mirror>\n  <id>suki-get</id>\n  <mirrorOf>central</mirrorOf>\n  <url>${base}maven2/</url>\n</mirror>`
+  };
+  const command = commands[key];
+  if (command) {
+    return { original: command(`${platform.upstream}/`), accelerated: command(prefix) };
+  }
+  if (platform.category === 'ai') {
+    return {
+      original: `API 地址：${platform.upstream}/\n接口路径、认证头和请求体按服务商要求填写。`,
+      accelerated: `API 地址：${prefix}\n在此地址后保留完整接口路径；认证头和请求体沿用上游配置。`
+    };
+  }
+  if (platform.category === 'linux' || platform.category === 'package') {
+    return {
+      original: `源地址：${platform.upstream}/<仓库内路径>`,
+      accelerated: `源地址：${prefix}<仓库内路径>`
+    };
+  }
+}
+
+/** Lists independent usage scenarios instead of reducing a platform to one operation. */
+export function platformUsage(key: string, origin: string): UsageExample[] {
+  const platform = platforms.find(item => item.key === key);
+  if (!platform) return [];
+  if (key === 'ip-openai') {
+    return [
+      {
+        title: '默认 OpenAI 入口',
+        original: 'Base URL: https://api.openai.com/v1',
+        accelerated: `Base URL: ${origin}/v1`
+      },
+      {
+        title: '使用显式平台前缀',
+        original: 'Base URL: https://api.openai.com/v1',
+        accelerated: `Base URL: ${origin}${platform.pathPrefix}v1`
+      }
+    ];
+  }
+  if (key === 'cr-docker') {
+    const explicit = singlePlatformUsage(key, origin);
+    return [
+      {
+        title: '默认拉取 Docker Hub 镜像',
+        original: 'docker pull nginx:latest',
+        accelerated: `docker pull ${new URL(origin).host}/nginx:latest`
+      },
+      {
+        title: '拉取带命名空间的镜像',
+        original: 'docker pull <命名空间>/<镜像名>:<标签>',
+        accelerated: `docker pull ${new URL(origin).host}/<命名空间>/<镜像名>:<标签>`
+      },
+      ...(explicit ? [{ ...explicit, title: '使用显式平台前缀' }] : [])
+    ];
+  }
+  const repositories: Record<string, string> = {
+    gh: 'microsoft/vscode',
+    gl: 'gitlab-org/gitlab',
+    gitea: 'gitea/tea',
+    codeberg: 'forgejo/forgejo',
+    hf: 'openai-community/gpt2',
+    aosp: 'platform/frameworks/base'
+  };
+  const scenarios: { title: string; path: string; file?: string }[] = [];
+  const repository = repositories[key];
+  if (repository) {
+    scenarios.push({ title: '克隆仓库', path: `${repository}${key === 'aosp' ? '' : '.git'}` });
+  }
+  if (key === 'gh' || key === 'homebrew') {
+    const repo = key === 'gh' ? 'microsoft/vscode' : 'brew';
+    const branch = key === 'gh' ? 'main' : 'master';
+    scenarios.push(
+      {
+        title: '下载分支源码 ZIP',
+        path: `${repo}/archive/refs/heads/${branch}.zip`,
+        file: 'source.zip'
+      },
+      {
+        title: '下载标签源码归档',
+        path: `${repo}/archive/refs/tags/<标签>.tar.gz`,
+        file: 'source.tar.gz'
+      },
+      {
+        title: '下载 Release 附件',
+        path: `${repo}/releases/download/<标签>/<附件名>`,
+        file: '<附件名>'
+      },
+      {
+        title: '下载仓库原始文件',
+        path: `${repo}/raw/refs/heads/${branch}/README.md`,
+        file: 'README.md'
+      }
+    );
+  }
+  if (key === 'gl') {
+    scenarios.push(
+      {
+        title: '下载分支源码归档',
+        path: `${repository}/-/archive/master/gitlab-master.zip`,
+        file: 'source.zip'
+      },
+      {
+        title: '下载仓库原始文件',
+        path: `${repository}/-/raw/master/README.md`,
+        file: 'README.md'
+      },
+      {
+        title: '下载 Release 附件',
+        path: `${repository}/-/releases/<标签>/downloads/<附件路径>`,
+        file: '<附件名>'
+      }
+    );
+  }
+  if (key === 'gitea' || key === 'codeberg') {
+    scenarios.push(
+      { title: '下载分支源码归档', path: `${repository}/archive/<分支>.zip`, file: 'source.zip' },
+      {
+        title: '下载仓库原始文件',
+        path: `${repository}/raw/branch/<分支>/README.md`,
+        file: 'README.md'
+      },
+      {
+        title: '下载 Release 附件',
+        path: `${repository}/releases/download/<标签>/<附件名>`,
+        file: '<附件名>'
+      }
+    );
+  }
+  if (key === 'hf') {
+    scenarios.push(
+      {
+        title: '下载模型配置',
+        path: `${repository}/resolve/main/config.json`,
+        file: 'config.json'
+      },
+      {
+        title: '下载模型权重并支持续传',
+        path: `${repository}/resolve/main/model.safetensors`,
+        file: 'model.safetensors'
+      },
+      {
+        title: '下载数据集文件',
+        path: 'datasets/<组织>/<数据集>/resolve/<版本>/<文件路径>',
+        file: '<文件名>'
+      }
+    );
+  }
+  if (key === 'gist') {
+    scenarios.push(
+      { title: '克隆 Gist', path: '<Gist ID>.git' },
+      { title: '下载原始文件', path: '<用户>/<Gist ID>/raw/<版本>/<文件名>', file: '<文件名>' }
+    );
+  }
+  if (key === 'aosp') {
+    scenarios.push({
+      title: '下载源码归档',
+      path: `${repository}/+archive/refs/heads/main.tar.gz`,
+      file: 'source.tar.gz'
+    });
+  }
+  if (key === 'sf') {
+    scenarios.push({
+      title: '下载项目发行文件',
+      path: 'projects/<项目>/files/<版本>/<文件名>/download',
+      file: '<文件名>'
+    });
+  }
+  if (key === 'civitai') {
+    scenarios.push({
+      title: '下载指定版本的模型',
+      path: 'api/download/models/<模型版本 ID>',
+      file: 'model.safetensors'
+    });
+  }
+  if (scenarios.length) {
+    return scenarios.map(({ title, path, file }) => {
+      const command = (base: string) =>
+        file ? `curl -fL -C - -o "${file}" "${base}${path}"` : `git clone "${base}${path}"`;
+      return {
+        title,
+        original: command(`${platform.upstream}/`),
+        accelerated: command(key === 'gh' ? `${origin}/` : `${origin}${platform.pathPrefix}`)
+      };
+    });
+  }
+  const usage = singlePlatformUsage(key, origin);
+  return usage ? [usage] : [];
+}

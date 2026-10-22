@@ -7,7 +7,7 @@ Start 项目，接入原有代理核心，并提供简洁的中文界面。
 
 - 首页粘贴资源链接后生成加速地址，自动复制并显示短暂通知，可点击输入框右侧切换后的打开图标访问。
 - 链接生成、复制失败使用 Toast 提示；页面不存在、页面加载失败及资源访问错误展示错误页。
-- 文档页按类别展示支持的平台，提供搜索、平台详情和地址示例。
+- 文档页按类别展示支持的平台，提供搜索、平台详情和命令示例。
 - 支持代码仓库、软件包、Linux 软件源、开发资源、容器镜像及 AI 接口。
 - 提供请求转发、超时重试、地址改写，以及 Git、容器和 AI 流式协议处理。
 
@@ -110,6 +110,25 @@ npm start
 
 `GET /.well-known/suki-get.json` 返回当前实例的平台清单及地址转换能力，支持
 `HEAD`。
+
+除了平台前缀，也可在站点域名后拼接完整上游地址，自动识别已支持的平台，例如
+`git clone https://get.syf.sh/https://github.com/microsoft/vscode.git`。文件下载和 API 请求同样适用，保留原接口路径、查询参数、请求方法及认证信息。
+
+GitHub 默认省略 `/gh/`，例如
+`git clone https://get.syf.sh/microsoft/vscode.git`。首页生成 GitHub 链接或命令时默认采用这种写法；若用户名与已有平台或页面入口重名，则保留
+`/gh/`。
+
+容器镜像默认使用 Docker
+Hub：`docker pull get.syf.sh/nginx:latest`，带命名空间的镜像保留完整镜像名。其他镜像仓库继续使用平台前缀，如
+`docker pull get.syf.sh/cr/ghcr/<命名空间>/<镜像名>:<标签>`。容器镜像引用不使用嵌入
+`https://` 的写法。更多用法见站点文档概览。
+
+OpenAI 客户端的 Base URL 可直接使用 `https://get.syf.sh/v1`，也可继续使用
+`https://get.syf.sh/openai/v1`。其他 AI 服务使用对应平台前缀或完整 URL 自动识别。
+
+首页支持链接及单条客户端命令，例如
+`docker pull ghcr.io/shenyefan/suki-get`、`git clone`、`curl`、`wget`
+及包含软件源地址的包管理器命令。命令生成后自动复制，结果按钮可再次复制；链接生成后可直接打开。
 
 ## 运行配置
 

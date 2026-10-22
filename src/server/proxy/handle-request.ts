@@ -10,6 +10,8 @@ import { PerformanceMonitor, addPerformanceHeaders } from './utils/performance';
 import { addCorsHeaders, addSecurityHeaders, createErrorResponse } from './utils/security';
 import { getAllowedMethods, isProtocolRequest, validateRequest } from './utils/validation';
 import { createRequestContext } from './request-context';
+import { ContractError } from '#/lib/platforms/conversion';
+import type { RequestContext } from './types';
 
 /**
  * Main request handler with comprehensive caching, retry logic, and security measures.
@@ -21,7 +23,13 @@ export async function handleRequest(
 ): Promise<Response> {
   let response;
   const monitor = new PerformanceMonitor();
-  const requestContext = createRequestContext(request, env);
+  let requestContext: RequestContext;
+  try {
+    requestContext = createRequestContext(request, env);
+  } catch (error) {
+    if (!(error instanceof ContractError)) throw error;
+    return createErrorResponse(error.message, error.code === 'INVALID_URL' ? 400 : 404);
+  }
   const { config, isCorsPreflight, isDocker, url } = requestContext;
 
   try {
@@ -179,8 +187,11 @@ export async function handleRequest(
 
   const responseWithCors = (() => {
     const headers = addCorsHeaders(new Headers(response.headers), request, config);
-    if (url.pathname === DISCOVERY_PATH && headers.has('Access-Control-Allow-Origin')) {
-      headers.set('Access-Control-Allow-Methods', 'GET, HEAD');
+    if (headers.has('Access-Control-Allow-Origin')) {
+      headers.set(
+        'Access-Control-Allow-Methods',
+        getAllowedMethods(request, url, config).join(', ')
+      );
     }
     return new Response(response.body, {
       status: response.status,

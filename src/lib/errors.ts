@@ -1,4 +1,10 @@
 export const errorDetails = {
+  invalid_command: {
+    status: 400,
+    title: '暂时无法转换这条命令。',
+    description:
+      '支持 docker pull、git clone、curl、wget 及常见包管理器命令；请输入单条命令，并保留完整资源地址。'
+  },
   invalid_url: {
     status: 400,
     title: '链接格式有误。',
@@ -11,7 +17,7 @@ export const errorDetails = {
   },
   copy_failed: {
     status: 400,
-    title: '暂时无法复制链接。',
+    title: '暂时无法复制内容。',
     description:
       '浏览器未允许访问剪贴板。请使用 HTTPS 或本地地址访问，并检查浏览器的复制权限后重试。'
   },

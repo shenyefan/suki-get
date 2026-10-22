@@ -1,9 +1,12 @@
-import { PLATFORM_CATALOG } from './catalog';
+import { PLATFORM_CATALOG, PLATFORM_DEFINITIONS } from './catalog';
 
 /**
  * Converts a platform key into its matching URL prefix.
  */
 export function getPlatformPathPrefix(platformKey: string): string {
+  if (PLATFORM_DEFINITIONS[platformKey]?.category === 'ai') {
+    return `/${platformKey.slice(3)}/`;
+  }
   return `/${platformKey.replace(/-/g, '/')}/`;
 }
 
@@ -22,4 +25,16 @@ export function matchPlatformPath(path: string): string | undefined {
     const prefix = getPlatformPathPrefix(key);
     return path.startsWith(prefix) || path === prefix.slice(0, -1);
   });
+}
+
+/** Bare owner/repository paths belong to GitHub unless an existing entry owns them. */
+export function isDefaultGitHubPath(path: string): boolean {
+  const segments = path.split('/');
+  return (
+    !matchPlatformPath(path) &&
+    !['docs', 'error', 'assets', 'v1', 'v2', 'cr'].includes(segments[1]) &&
+    /^[a-z0-9][a-z0-9-]{0,38}$/i.test(segments[1] || '') &&
+    /^[a-z0-9_.-]+$/i.test(segments[2] || '') &&
+    !['.', '..'].includes(segments[2])
+  );
 }

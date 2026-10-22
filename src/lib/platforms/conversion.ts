@@ -1,7 +1,7 @@
 import type { PlatformConversion } from './catalog';
 
 import { PLATFORM_DEFINITIONS, CATALOG_VERSION, RELEASE_VERSION, SCHEMA_VERSION } from './catalog';
-import { getPlatformPathPrefix, matchPlatformPath } from './platform-index';
+import { getPlatformPathPrefix, isDefaultGitHubPath, matchPlatformPath } from './platform-index';
 import { transformPath } from './platform-transformers';
 import { normalizeRegistryApiPath } from './registry-path';
 
@@ -57,7 +57,14 @@ export function getPlatformManifest(): {
     schemaVersion: SCHEMA_VERSION,
     catalogVersion: CATALOG_VERSION,
     releaseVersion: RELEASE_VERSION,
-    capabilities: ['routing', 'url-conversion'],
+    capabilities: [
+      'routing',
+      'url-conversion',
+      'upstream-url-routing',
+      'default-docker-hub',
+      'default-github',
+      'default-openai'
+    ],
     platforms: Object.keys(PLATFORM_DEFINITIONS).map(describePlatform)
   };
 }
@@ -177,7 +184,7 @@ export function resolveUrl(
   return {
     platform,
     upstreamUrl: actualUpstream.href,
-    convertedUrl: `${base.origin}${convertedPath}${input.search}${input.hash}`,
+    convertedUrl: `${base.origin}${platform.key === 'gh' && isDefaultGitHubPath(input.pathname) ? input.pathname : convertedPath}${input.search}${input.hash}`,
     baseUrl: base.origin,
     ...(normalization ? { normalization } : {})
   };
@@ -188,6 +195,25 @@ export function resolveUrl(
  */
 export function validateBaseUrl(baseUrl: string): string {
   return parseHttpUrl(baseUrl, true).origin;
+}
+
+/** Resolves default service entries and allowlisted upstream URLs to platform routes. */
+export function resolveProxyRequestUrl(url: URL): URL {
+  if (isDefaultGitHubPath(url.pathname)) {
+    const canonical = new URL(url);
+    canonical.pathname = `${getPlatformPathPrefix('gh')}${url.pathname.slice(1)}`;
+    return canonical;
+  }
+  if (url.pathname === '/v1' || url.pathname.startsWith('/v1/')) {
+    const canonical = new URL(url);
+    canonical.pathname = `${getPlatformPathPrefix('ip-openai')}${url.pathname.slice(1)}`;
+    return canonical;
+  }
+  if (!/^\/https?:\/\//i.test(url.pathname)) {
+    return url;
+  }
+  const upstreamUrl = `${url.pathname.slice(1)}${url.search}`;
+  return resolveProxyRequestUrl(new URL(resolveUrl(upstreamUrl, url.origin).convertedUrl));
 }
 
 export interface PlatformDescription {

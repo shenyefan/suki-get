@@ -132,7 +132,7 @@ function resolveDockerAuthTarget(
   const scope = url.searchParams.get('scope') || '';
   const pathMatch = url.pathname.match(/^\/cr\/([^/]+)\/v2\/auth\/?$/);
 
-  let platformKey = pathMatch ? `cr-${pathMatch[1]}` : '';
+  let platformKey = pathMatch ? `cr-${pathMatch[1]}` : 'cr-docker';
   let repoPath = '';
   let upstreamScope = scope;
 
@@ -142,6 +142,7 @@ function resolveDockerAuthTarget(
       const [, fullRepoPath] = parts;
 
       if (fullRepoPath.startsWith('cr/')) {
+        platformKey = '';
         for (const key of SORTED_PLATFORMS) {
           if (!key.startsWith('cr-')) continue;
 

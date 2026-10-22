@@ -7,6 +7,7 @@ import type { RequestTraits } from '../types';
 
 import { CONFIG } from '../config';
 import { DISCOVERY_PATH } from '#/lib/platforms/catalog.ts';
+import { ContractError, resolveProxyRequestUrl } from '#/lib/platforms/conversion';
 
 // Imported protocol checks
 import { isAIInferenceRequest } from '../protocols/ai';
@@ -17,6 +18,12 @@ import { isHuggingFaceAPIRequest } from '../protocols/huggingface';
  * Computes protocol and request traits used across validation, routing, and response handling.
  */
 export function getRequestTraits(request: Request, url: URL): RequestTraits {
+  // Error-page classification also receives the original embedded-URL request.
+  try {
+    url = resolveProxyRequestUrl(url);
+  } catch (error) {
+    if (!(error instanceof ContractError)) throw error;
+  }
   return {
     isAI: isAIInferenceRequest(request, url),
     isDocker: isDockerRequest(request, url),
@@ -175,7 +182,7 @@ export function validateRequest(
     return { valid: false, error: 'Method not allowed', status: 405 };
   }
 
-  if (url.pathname.length > config.SECURITY.MAX_PATH_LENGTH) {
+  if (new URL(request.url).pathname.length > config.SECURITY.MAX_PATH_LENGTH) {
     return { valid: false, error: 'Path too long', status: 414 };
   }
 

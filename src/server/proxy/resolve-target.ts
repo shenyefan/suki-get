@@ -18,6 +18,15 @@ export function normalizeEffectivePath(
     return { effectivePath };
   }
 
+  // Bare image references on this host use Docker Hub; explicit /cr/ routes win.
+  if (
+    url.pathname.startsWith('/v2/') &&
+    !url.pathname.startsWith('/v2/cr/') &&
+    url.pathname !== '/v2/auth'
+  ) {
+    return { effectivePath: `/cr/docker${url.pathname}` };
+  }
+
   if (
     !url.pathname.startsWith('/cr/') &&
     !url.pathname.startsWith('/v2/cr/') &&

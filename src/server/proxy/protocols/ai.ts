@@ -1,18 +1,15 @@
-/**
- * AI Inference protocol handler for Suki Get
- */
+import { PLATFORM_DEFINITIONS } from '#/lib/platforms/catalog';
+import { matchPlatformPath } from '#/lib/platforms/platform-index';
 
 /**
  * Detects if a request is for an AI inference provider API.
  *
- * Identifies AI inference requests by checking for:
- * - AI provider path prefix (/ip/{provider}/...)
- * - Common AI API endpoints (chat, completions, embeddings, etc.)
- * - AI-specific URL patterns with JSON POST requests
+ * Uses the shared platform catalog to recognize flat provider paths.
  */
 export function isAIInferenceRequest(request: Request, url: URL): boolean {
   void request;
-  return url.pathname.startsWith('/ip/');
+  const platform = matchPlatformPath(url.pathname);
+  return platform !== undefined && PLATFORM_DEFINITIONS[platform].category === 'ai';
 }
 
 /**

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -10,6 +11,11 @@ export const Route = createFileRoute('/docs/')({
 });
 
 function DocumentationHome() {
+  const [origin, setOrigin] = useState('https://get.syf.sh');
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+  const host = new URL(origin).host;
   return (
     <article className='wiki-article docs-overview'>
       <div className='wiki-heading'>
@@ -21,13 +27,84 @@ function DocumentationHome() {
       <section className='docs-quickstart' aria-labelledby='quickstart-title'>
         <div>
           <h2 id='quickstart-title'>从一个链接开始</h2>
-          <p>粘贴完整资源地址，生成并自动复制。加速链接使用当前站点域名。</p>
+          <p>粘贴资源链接或命令，生成并自动复制。链接与命令中的资源地址使用当前站点域名。</p>
         </div>
         <Button asChild variant='outline'>
           <Link to='/'>
             去生成 <ArrowUpRight aria-hidden='true' />
           </Link>
         </Button>
+      </section>
+      <section className='wiki-section'>
+        <h2>首页也能转换命令</h2>
+        <p>
+          支持 docker pull、git clone、curl、wget，以及包含 registry、index-url
+          等地址的包管理器命令。生成后保留原有选项并自动复制；命令结果使用复制按钮，链接结果可以直接打开。
+        </p>
+        <pre className='wiki-code' aria-label='命令转换示例' tabIndex={0}>
+          <code>{`# 上游命令\ndocker pull ghcr.io/shenyefan/suki-get\n\n# 本站命令\ndocker pull ${host}/cr/ghcr/shenyefan/suki-get`}</code>
+        </pre>
+      </section>
+      <section className='wiki-section'>
+        <h2>GitHub：默认省略前缀</h2>
+        <p>
+          GitHub 资源可以直接在本站域名后填写用户、仓库和资源路径，支持克隆、源码归档、Release
+          附件及文件下载。首页生成 GitHub 链接或命令时默认使用这种写法。
+        </p>
+        <pre className='wiki-code' aria-label='默认 GitHub 示例' tabIndex={0}>
+          <code>{`# 克隆仓库\ngit clone "${origin}/microsoft/vscode.git"\n\n# 下载源码\ncurl -fL -o source.zip "${origin}/microsoft/vscode/archive/refs/heads/main.zip"`}</code>
+        </pre>
+        <p>
+          若用户名与本站平台前缀或页面入口重名，请使用 /gh/ 前缀明确指定
+          GitHub；首页遇到这种情况会自动保留前缀。
+        </p>
+      </section>
+      <section className='wiki-section'>
+        <h2>两种地址用法</h2>
+        <p>
+          可以使用平台文档中的专属前缀，也可以在本站域名后直接拼接完整上游地址，自动识别平台。原地址中的
+          https:// 和查询参数需完整保留。
+        </p>
+        <pre className='wiki-code' aria-label='前缀与自动识别示例' tabIndex={0}>
+          <code>{`# 平台前缀\ngit clone "${origin}/gh/microsoft/vscode.git"\n\n# 自动识别\ngit clone "${origin}/https://github.com/microsoft/vscode.git"`}</code>
+        </pre>
+        <p>
+          文件下载、源码归档、Release 附件及 API
+          请求也可使用完整地址方式；请求方法、认证信息和请求体保持原有用法。自动识别仅适用于本站支持的平台。
+        </p>
+        <pre className='wiki-code' aria-label='自动识别文件下载示例' tabIndex={0}>
+          <code>{`curl -fL -o source.zip "${origin}/https://github.com/microsoft/vscode/archive/refs/heads/main.zip"`}</code>
+        </pre>
+      </section>
+      <section className='wiki-section'>
+        <h2>容器镜像：默认 Docker Hub</h2>
+        <p>
+          镜像名前只加本站域名，默认从 Docker Hub 拉取。官方镜像可省略
+          library/，其他镜像保留原命名空间。
+        </p>
+        <pre className='wiki-code' aria-label='默认 Docker Hub 示例' tabIndex={0}>
+          <code>{`# 官方镜像\ndocker pull ${host}/nginx:latest\n\n# 带命名空间的镜像\ndocker pull ${host}/<命名空间>/<镜像名>:<标签>`}</code>
+        </pre>
+        <p>
+          其他镜像仓库使用 /cr/平台/ 前缀；Docker Hub 也可以继续使用 /cr/docker/。docker pull
+          的镜像名不使用 https:// 完整地址格式。
+        </p>
+        <pre className='wiki-code' aria-label='指定镜像仓库示例' tabIndex={0}>
+          <code>{`# GitHub Container Registry\ndocker pull ${host}/cr/ghcr/<命名空间>/<镜像名>:<标签>\n\n# 显式指定 Docker Hub\ndocker pull ${host}/cr/docker/library/nginx:latest`}</code>
+        </pre>
+      </section>
+      <section className='wiki-section'>
+        <h2>AI 接口：默认 OpenAI</h2>
+        <p>
+          OpenAI 客户端的 Base URL 可直接设置为本站 /v1，接口请求会转发到 OpenAI。继续使用 OpenAI 的
+          API Key，并保留请求体与流式调用参数。
+        </p>
+        <pre className='wiki-code' aria-label='默认 OpenAI 地址' tabIndex={0}>
+          <code>{`# Base URL\n${origin}/v1\n\n# 请求地址\nPOST ${origin}/v1/chat/completions`}</code>
+        </pre>
+        <p>
+          也可继续使用 /openai/v1；其他 AI 服务使用各自平台前缀，或在本站域名后拼接完整 API 地址。
+        </p>
       </section>
       <section className='wiki-section' aria-labelledby='categories-title'>
         <div className='docs-section-heading'>

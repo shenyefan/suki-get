@@ -1,16 +1,10 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, Copy } from 'lucide-react';
-import { toast } from 'sonner';
 import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
 import { Table, TableBody, TableCell, TableRow } from '../components/ui/table';
-import { Textarea } from '../components/ui/textarea';
-import { categories, examples, platformName, platforms } from '../lib/platform-docs';
+import { categories, examples, platformName, platforms, platformUsage } from '../lib/platform-docs';
 import { resolveUrl } from '../lib/platforms/conversion';
-import { errorDetails } from '../lib/errors';
 
 export const Route = createFileRoute('/docs/$platform')({
   loader: ({ params }) => {
@@ -43,16 +37,12 @@ function PlatformDocument() {
     : converted.replace('https://suki-get.example', '<当前站点>');
   const prefix = `${origin || '<当前站点>'}${platform.pathPrefix}`;
 
-  async function copyExample() {
-    try {
-      await navigator.clipboard.writeText(converted);
-      toast.success('加速示例已复制');
-    } catch {
-      toast.error(errorDetails.copy_failed.title, {
-        description: errorDetails.copy_failed.description
-      });
-    }
-  }
+  const usage = platformUsage(platform.key, origin || 'https://get.syf.sh');
+  const usageExamples = usage.length
+    ? usage
+    : sample
+      ? [{ title: '资源下载', original: sample, accelerated: displayUrl }]
+      : [];
 
   return (
     <article className='wiki-article'>
@@ -87,18 +77,15 @@ function PlatformDocument() {
             </TableRow>
           </TableBody>
         </Table>
-        <Button asChild variant='outline'>
-          <a href={platform.upstream} target='_blank' rel='noopener noreferrer'>
-            访问上游 <ArrowUpRight aria-hidden='true' />
-          </a>
-        </Button>
       </section>
       <section className='wiki-section'>
         <h2>使用方式</h2>
-        <p>
-          在首页粘贴该平台的完整资源链接，点击输入框右侧的箭头。Suki Get
-          会自动识别平台并转换地址，无需手动拼接路径。
-        </p>
+        {!['container', 'ai', 'package', 'linux'].includes(platform.category) && (
+          <p>
+            在首页粘贴该平台的完整资源链接，点击输入框右侧的箭头。Suki Get
+            会自动识别平台并转换地址，无需手动拼接路径。
+          </p>
+        )}
         {platform.category === 'ai' && (
           <p>
             在 API 客户端中使用本站对应的 API
@@ -107,8 +94,14 @@ function PlatformDocument() {
         )}
         {platform.category === 'container' && (
           <p>
-            容器客户端使用本站域名及镜像平台前缀访问资源，镜像名与标签仍按原仓库格式填写。服务端保留
+            Docker Hub
+            镜像只需在镜像名前加上本站域名；其他镜像仓库使用本站域名及镜像平台前缀。镜像名与标签仍按原仓库格式填写。服务端保留
             Registry V2 握手与认证处理。
+          </p>
+        )}
+        {['package', 'linux'].includes(platform.category) && (
+          <p>
+            在包管理器或软件源配置中替换上游地址，保留仓库内路径、发行版、组件及签名校验配置。下方示例中的占位内容需按实际资源替换。
           </p>
         )}
         {platform.key === 'npm' && (
@@ -123,45 +116,38 @@ function PlatformDocument() {
           </p>
         )}
         {platform.key === 'gh' && (
-          <p>支持仓库文件、源码归档与 Git 请求。克隆仓库时保留 .git 后缀及原始 Git 请求路径。</p>
+          <p>
+            支持 Git 克隆、分支与标签源码归档、Release 附件及仓库原始文件下载。下载文件应使用
+            raw、archive 或 releases/download 地址；blob 地址展示的是文件页面。 GitHub 默认可省略
+            /gh/，直接填写用户和仓库路径；若用户名与本站入口重名，使用 /gh/ 明确指定。
+          </p>
         )}
       </section>
-      {sample && (
+      {usageExamples.length > 0 && (
         <section className='wiki-section'>
-          <h2>链接示例</h2>
-          <Card>
-            <CardHeader>
-              <CardTitle>原始资源</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea aria-label='原始资源示例' readOnly value={sample} rows={2} />
-            </CardContent>
-          </Card>
-          <Card className='example-output'>
-            <CardHeader>
-              <CardTitle>本站加速地址</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea aria-label='加速资源示例' readOnly value={displayUrl} rows={3} />
-              <Button variant='outline' size='sm' onClick={copyExample} disabled={!origin}>
-                <Copy aria-hidden='true' />
-                复制加速示例
-              </Button>
-            </CardContent>
-          </Card>
-          <p className='wiki-caption'>这是地址格式示例，不会自动探测或下载该资源。</p>
+          <h2>使用示例</h2>
+          {usageExamples.map((example, index) => {
+            const title = example.title || '使用示例';
+            const comment = (label: string) =>
+              example.original.startsWith('<mirror>') ? `<!-- ${label} -->` : `# ${label}`;
+            return (
+              <pre
+                className='wiki-code'
+                key={example.title || index}
+                aria-label={title}
+                tabIndex={0}
+              >
+                <code>{`${comment(title)}\n\n${comment('上游用法')}\n${example.original}\n\n${comment('本站用法')}\n${example.accelerated}`}</code>
+              </pre>
+            );
+          })}
         </section>
       )}
       <section className='wiki-section wiki-note'>
         <h2>使用提示</h2>
         <p>
-          资源的访问权限和服务可用性由上游平台决定。生成链接不代表已验证资源可用；带有签名参数的链接应完整保留查询参数。
+          示例中的占位内容需替换为实际仓库、分支、标签或文件名。资源的访问权限由上游平台决定；带有签名参数的链接应完整保留查询参数。
         </p>
-        <Button asChild variant='outline'>
-          <Link to='/'>
-            回到首页 <ArrowUpRight aria-hidden='true' />
-          </Link>
-        </Button>
       </section>
     </article>
   );
