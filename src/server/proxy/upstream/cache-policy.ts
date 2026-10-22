@@ -1,7 +1,7 @@
 import type { ApplicationConfig } from '../config';
 import type { RequestTraits, CachePolicy } from '../types';
 
-import { isFlatpakReferenceFilePath } from '../utils/rewrite';
+import { isFlatpakReferenceFilePath, isRewrittenJsonResource } from '../utils/rewrite';
 
 const METADATA_EDGE_TTL_SECONDS = 60;
 const MUTABLE_EDGE_TTL_SECONDS = 300;
@@ -104,7 +104,7 @@ function isGithubReleaseArtifact(effectivePath: string, targetPath: string): boo
  * Checks whether a npm path points to a package tarball.
  */
 function isNpmTarballPath(pathname: string): boolean {
-  return /^\/(?:npm\/)?(?:@[^/]+\/)?[^/]+\/-\/[^/]+\.tgz$/i.test(pathname);
+  return /^\/(?:(?:npm|yarn)\/)?(?:@[^/]+\/)?[^/]+\/-\/[^/]+\.tgz$/i.test(pathname);
 }
 
 /**
@@ -145,7 +145,7 @@ export function isImmutableArtifactRequest(
   const effectivePathname = getPathname(effectivePath);
   const targetPathname = getPathname(targetUrl);
 
-  if (platform === 'npm') {
+  if (platform === 'npm' || platform === 'yarn') {
     return isNpmTarballPath(effectivePathname) || isNpmTarballPath(targetPathname);
   }
 
@@ -153,14 +153,18 @@ export function isImmutableArtifactRequest(
     return isVersionedPyPIFilePath(effectivePathname) || isVersionedPyPIFilePath(targetPathname);
   }
 
-  if (platform === 'maven') {
+  if (platform === 'maven' || platform === 'mavencentral') {
     return (
       isMavenReleaseArtifactPath(effectivePathname) || isMavenReleaseArtifactPath(targetPathname)
     );
   }
 
-  if (platform === 'crates') {
+  if (platform === 'crates' || platform === 'cargo-files') {
     return effectivePathname.endsWith('.crate') || targetPathname.endsWith('.crate');
+  }
+
+  if (['nuget', 'nuget-files', 'nuget-gallery'].includes(platform)) {
+    return effectivePathname.endsWith('.nupkg') || targetPathname.endsWith('.nupkg');
   }
 
   if (platform === 'rubygems') {
@@ -175,19 +179,13 @@ export function isImmutableArtifactRequest(
 }
 
 /**
- * Checks whether a npm path points to rewritten package metadata instead of tarball content.
- */
-function isNpmMetadataPath(effectivePath: string): boolean {
-  return effectivePath.startsWith('/npm/') && !isImmutableArtifactRequest('npm', effectivePath, '');
-}
-
-/**
  * Checks whether the cache key must include the request origin because response rewriting embeds it.
  */
 export function shouldVaryCacheByOrigin(platform: string, effectivePath: string): boolean {
   return (
     (platform === 'flathub' && isFlatpakReferenceFilePath(effectivePath)) ||
-    (platform === 'npm' && isNpmMetadataPath(effectivePath))
+    (isRewrittenJsonResource(platform, effectivePath) &&
+      !isImmutableArtifactRequest(platform, effectivePath, ''))
   );
 }
 
@@ -195,15 +193,18 @@ export function shouldVaryCacheByOrigin(platform: string, effectivePath: string)
  * Checks whether a request targets mutable metadata or package index resources.
  */
 function isMetadataOrIndexPath(platform: string, effectivePath: string): boolean {
-  if (platform === 'npm') {
-    return isNpmMetadataPath(effectivePath);
+  if (
+    isRewrittenJsonResource(platform, effectivePath) &&
+    !isImmutableArtifactRequest(platform, effectivePath, '')
+  ) {
+    return true;
   }
 
   if (platform === 'pypi') {
     return effectivePath.startsWith('/pypi/simple/') || effectivePath === '/pypi/simple';
   }
 
-  if (platform === 'maven') {
+  if (platform === 'maven' || platform === 'mavencentral') {
     return effectivePath.endsWith('/maven-metadata.xml');
   }
 
@@ -256,6 +257,7 @@ export function resolveCachePolicy({
   targetUrl: string;
 }): CachePolicy {
   const isProtocolRequest =
+    requestContext.isAPI ||
     requestContext.isGit ||
     requestContext.isGitLFS ||
     requestContext.isDocker ||

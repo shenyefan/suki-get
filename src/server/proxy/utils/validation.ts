@@ -6,7 +6,8 @@ import type { RequestTraits } from '../types';
  */
 
 import { CONFIG } from '../config';
-import { DISCOVERY_PATH } from '#/lib/platforms/catalog.ts';
+import { DISCOVERY_PATH, PLATFORM_DEFINITIONS } from '#/lib/platforms/catalog.ts';
+import { matchPlatformPath } from '#/lib/platforms/platform-index';
 import { ContractError, resolveProxyRequestUrl } from '#/lib/platforms/conversion';
 
 // Imported protocol checks
@@ -24,7 +25,9 @@ export function getRequestTraits(request: Request, url: URL): RequestTraits {
   } catch (error) {
     if (!(error instanceof ContractError)) throw error;
   }
+  const platform = matchPlatformPath(url.pathname);
   return {
+    isAPI: platform !== undefined && PLATFORM_DEFINITIONS[platform].protocol === 'api',
     isAI: isAIInferenceRequest(request, url),
     isDocker: isDockerRequest(request, url),
     isGit: isGitRequest(request, url),
@@ -37,7 +40,9 @@ export function getRequestTraits(request: Request, url: URL): RequestTraits {
  * Checks whether a request should use protocol passthrough behavior.
  */
 export function isProtocolRequest(traits: RequestTraits): boolean {
-  return traits.isGit || traits.isGitLFS || traits.isDocker || traits.isAI || traits.isHF;
+  return (
+    traits.isAPI || traits.isGit || traits.isGitLFS || traits.isDocker || traits.isAI || traits.isHF
+  );
 }
 
 /**

@@ -36,7 +36,7 @@ export async function tryReadCachedResponse({
   request: Request;
   requestContext: RequestTraits;
 }): Promise<Response | null> {
-  const { isAI, isDocker, isGit, isGitLFS, isHF } = requestContext;
+  const { isAPI, isAI, isDocker, isGit, isGitLFS, isHF } = requestContext;
 
   if (
     !cache ||
@@ -45,6 +45,7 @@ export async function tryReadCachedResponse({
     isGit ||
     isGitLFS ||
     isDocker ||
+    isAPI ||
     isAI ||
     isHF ||
     hasSensitiveHeaders

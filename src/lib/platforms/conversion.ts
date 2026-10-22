@@ -199,6 +199,12 @@ export function validateBaseUrl(baseUrl: string): string {
 
 /** Resolves default service entries and allowlisted upstream URLs to platform routes. */
 export function resolveProxyRequestUrl(url: URL): URL {
+  const bottlesPrefix = getPlatformPathPrefix('homebrew-bottles');
+  if (url.pathname.startsWith(bottlesPrefix)) {
+    const canonical = new URL(url);
+    canonical.pathname = `${getPlatformPathPrefix('cr-ghcr')}${transformPath(url.pathname, 'homebrew-bottles').slice(1)}`;
+    return canonical;
+  }
   if (isDefaultGitHubPath(url.pathname)) {
     const canonical = new URL(url);
     canonical.pathname = `${getPlatformPathPrefix('gh')}${url.pathname.slice(1)}`;

@@ -1,6 +1,7 @@
 import type { ApplicationConfig } from './config';
 
 export interface RequestTraits {
+  isAPI: boolean;
   isAI: boolean;
   isDocker: boolean;
   isGit: boolean;

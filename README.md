@@ -118,6 +118,9 @@ GitHub 默认省略 `/gh/`，例如
 `git clone https://get.syf.sh/microsoft/vscode.git`。首页生成 GitHub 链接或命令时默认采用这种写法；若用户名与已有平台或页面入口重名，则保留
 `/gh/`。
 
+`raw.githubusercontent.com` 原始文件链接使用 `/raw/`
+前缀，并支持完整 URL 自动识别与下载命令转换。
+
 容器镜像默认使用 Docker
 Hub：`docker pull get.syf.sh/nginx:latest`，带命名空间的镜像保留完整镜像名。其他镜像仓库继续使用平台前缀，如
 `docker pull get.syf.sh/cr/ghcr/<命名空间>/<镜像名>:<标签>`。容器镜像引用不使用嵌入
@@ -129,6 +132,27 @@ OpenAI 客户端的 Base URL 可直接使用 `https://get.syf.sh/v1`，也可继
 首页支持链接及单条客户端命令，例如
 `docker pull ghcr.io/shenyefan/suki-get`、`git clone`、`curl`、`wget`
 及包含软件源地址的包管理器命令。命令生成后自动复制，结果按钮可再次复制；链接生成后可直接打开。
+
+## 平台附属域名
+
+平台目录同时维护主站与常见的原始文件、发行下载、索引和 CDN 域名，首页链接、命令转换、完整 URL 自动识别及发现接口共用这些规则：
+
+| 平台           | 补充入口                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| GitHub / Gist  | Raw、Codeload、API、Release 附件、对象文件、LFS 与镜像层文件                                                                   |
+| Hugging Face   | Hub 别名、LFS CDN、Xet API / 传输与区域 CDN，保留完整签名参数                                                                  |
+| 软件包与工具链 | Yarn Classic、Maven Central、Apache CDN / 归档、Gradle 发行、Cargo 索引 / 文件、Rust、NuGet 搜索 / 文件、CRAN Cloud、CTAN 镜像 |
+| Linux          | Debian 安全更新、Ubuntu 安全更新 / Ports / 历史版本                                                                            |
+| 镜像与 AI      | Google Registry 区域域名、Red Hat 公共和合作伙伴仓库、Cohere .com、Together .ai、fal 队列                                      |
+| 其他下载       | SourceForge 下载、Jenkins 下载 / 归档、arXiv 导出                                                                              |
+
+Yarn / npm 元数据、Cargo 稀疏索引配置和 NuGet
+JSON 中的受支持资源地址会改写到本站，避免索引通过代理、实际文件却绕回上游。已签名的存储链接保留原域名对应的路由、原始路径和查询参数，不转换为其他上游域名。
+
+域名依据包括
+[GitHub 网络要求](https://docs.github.com/en/actions/reference/runners/self-hosted-runners)、[Hugging Face 官方域名清单](https://huggingface.co/.well-known/meta.json)、[Rust / Cargo 基础设施](https://github.com/rust-lang/crates.io/blob/main/docs/ARCHITECTURE.md)
+与
+[NuGet 服务索引](https://api.nuget.org/v3/index.json)。目录采用明确的域名清单；新出现的下载域名仍需补充规则。
 
 ## 运行配置
 

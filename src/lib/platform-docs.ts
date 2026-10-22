@@ -1,4 +1,4 @@
-import { getPlatformManifest } from './platforms/conversion';
+import { getPlatformManifest, resolveUrl } from './platforms/conversion';
 
 export const platforms = getPlatformManifest().platforms;
 export const categories: Record<string, { title: string; description: string }> = {
@@ -27,6 +27,7 @@ export const categories: Record<string, { title: string; description: string }> 
 
 const names: Record<string, string> = {
   gh: 'GitHub',
+  raw: 'GitHub 原始文件',
   gist: 'GitHub Gist',
   gl: 'GitLab',
   gitea: 'Gitea',
@@ -109,7 +110,72 @@ const names: Record<string, string> = {
   'cr-heroku': 'Heroku',
   'cr-suse': 'SUSE',
   'cr-opensuse': 'openSUSE Registry',
-  'cr-gitpod': 'Gitpod'
+  'cr-gitpod': 'Gitpod',
+  codeload: 'GitHub 源码归档',
+  gistfiles: 'Gist 原始文件',
+  githubapi: 'GitHub API',
+  githubassets: 'GitHub Release 附件',
+  githubobjects: 'GitHub 对象文件',
+  githubobjectsorigin: 'GitHub 原始对象文件',
+  githubreleases: 'GitHub 发行文件',
+  githubregistry: 'GitHub 软件包文件',
+  githublfs: 'GitHub LFS 文件',
+  githublfss3: 'GitHub LFS 对象存储',
+  githubcontainers: 'GitHub 镜像层文件',
+  sfdownloads: 'SourceForge 文件下载',
+  'hfhub-short': 'Hugging Face 短域名',
+  'hfhub-com': 'Hugging Face .com',
+  'hfhub-cn': 'Hugging Face .cn',
+  'hflfs-global': 'Hugging Face LFS CDN',
+  'hflfs-us': 'Hugging Face LFS 美国',
+  'hflfs-eu': 'Hugging Face LFS 欧洲',
+  'hfxet-server-us': 'Hugging Face Xet API 美国',
+  'hfxet-server-eu': 'Hugging Face Xet API 欧洲',
+  'hfxet-transfer-us': 'Hugging Face Xet 传输美国',
+  'hfxet-transfer-eu': 'Hugging Face Xet 传输欧洲',
+  'hfxet-bridge': 'Hugging Face LFS 桥接',
+  yarn: 'Yarn Classic',
+  mavencentral: 'Maven Central Apache',
+  apachecdn: 'Apache 下载 CDN',
+  apachearchive: 'Apache 历史版本',
+  gradledist: 'Gradle 发行下载',
+  gradlecdn: 'Gradle 下载 CDN',
+  'cargo-index': 'Cargo 稀疏索引',
+  'cargo-files': 'Cargo 软件包文件',
+  rust: 'Rust 工具链',
+  'nuget-gallery': 'NuGet Gallery 与 V2',
+  'nuget-files': 'NuGet 软件包文件',
+  'nuget-searchprimary': 'NuGet 主搜索',
+  'nuget-searchsecondary': 'NuGet 备用搜索',
+  'cran-cloud': 'CRAN 全球镜像',
+  'ctan-mirrors': 'CTAN 自动镜像',
+  'debian-security': 'Debian 安全更新',
+  'ubuntu-security': 'Ubuntu 安全更新',
+  'ubuntu-ports': 'Ubuntu Ports',
+  'ubuntu-old': 'Ubuntu 历史版本',
+  'jenkins-downloads': 'Jenkins 下载',
+  'jenkins-archives': 'Jenkins 历史版本',
+  'arxiv-export': 'arXiv 导出',
+  'ip-coherecom': 'Cohere .com',
+  'ip-togetherai': 'Together AI .ai',
+  'ip-falqueue': 'fal.ai 异步队列',
+  'cr-gcrus': 'Google Registry 美国',
+  'cr-gcreu': 'Google Registry 欧洲',
+  'cr-gcrasia': 'Google Registry 亚洲',
+  'cr-redhatpublic': 'Red Hat 公共镜像',
+  'cr-redhatconnect': 'Red Hat 合作伙伴镜像',
+  'hfcdn-aws': 'Hugging Face CDN aws',
+  'hfcdn-us-aws': 'Hugging Face CDN us.aws',
+  'hfcdn-us-east-1-aws': 'Hugging Face CDN us-east-1.aws',
+  'hfcdn-us-west-2-aws': 'Hugging Face CDN us-west-2.aws',
+  'hfcdn-eu-west-3-aws': 'Hugging Face CDN eu-west-3.aws',
+  'hfcdn-ap-southeast-1-aws': 'Hugging Face CDN ap-southeast-1.aws',
+  'hfcdn-us-gcp': 'Hugging Face CDN us.gcp',
+  'hfcdn-us-east1-us-gcp': 'Hugging Face CDN us-east1.us.gcp',
+  'hfcdn-us-central1-us-gcp': 'Hugging Face CDN us-central1.us.gcp',
+  'hfcdn-us-west4-us-gcp': 'Hugging Face CDN us-west4.us.gcp',
+  'hfcdn-europe-west4-us-gcp': 'Hugging Face CDN europe-west4.us.gcp',
+  'hfcdn-asia-southeast1-us-gcp': 'Hugging Face CDN asia-southeast1.us.gcp'
 };
 export function platformName(key: string) {
   return names[key] || key;
@@ -117,6 +183,7 @@ export function platformName(key: string) {
 
 export const examples: Record<string, string> = {
   gh: 'https://github.com/microsoft/vscode/archive/refs/heads/main.zip',
+  raw: 'https://raw.githubusercontent.com/shenyefan/rule/refs/heads/main/Mihomo.yaml',
   gist: 'https://gist.github.com/example/123456/raw/example.txt',
   gl: 'https://gitlab.com/gitlab-org/gitlab/-/archive/master/gitlab-master.zip',
   hf: 'https://huggingface.co/gpt2/resolve/main/config.json',
@@ -127,7 +194,28 @@ export const examples: Record<string, string> = {
   'ip-openai': 'https://api.openai.com/v1/chat/completions',
   'ip-anthropic': 'https://api.anthropic.com/v1/messages',
   'cr-docker': 'https://registry-1.docker.io/v2/library/nginx/manifests/latest',
-  'cr-ghcr': 'https://ghcr.io/v2/homebrew/core/wget/manifests/latest'
+  'cr-ghcr': 'https://ghcr.io/v2/homebrew/core/wget/manifests/latest',
+  codeload: 'https://codeload.github.com/microsoft/vscode/zip/refs/heads/main',
+  githubapi: 'https://api.github.com/repos/microsoft/vscode/releases/latest',
+  'hfhub-short': 'https://hf.co/openai-community/gpt2/resolve/main/config.json',
+  yarn: 'https://registry.yarnpkg.com/react',
+  mavencentral:
+    'https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.pom',
+  apachearchive:
+    'https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz',
+  gradledist: 'https://services.gradle.org/distributions/gradle-8.14-bin.zip',
+  gradlecdn: 'https://downloads.gradle.org/distributions/gradle-8.14-bin.zip',
+  'cargo-index': 'https://index.crates.io/config.json',
+  'cargo-files': 'https://static.crates.io/crates/serde/serde-1.0.219.crate',
+  rust: 'https://static.rust-lang.org/dist/channel-rust-stable.toml',
+  'nuget-gallery': 'https://www.nuget.org/api/v2/package/Newtonsoft.Json/13.0.3',
+  'nuget-files': 'https://globalcdn.nuget.org/packages/newtonsoft.json.13.0.3.nupkg',
+  'nuget-searchprimary': 'https://azuresearch-usnc.nuget.org/query?q=newtonsoft',
+  'nuget-searchsecondary': 'https://azuresearch-ussc.nuget.org/query?q=newtonsoft',
+  'ctan-mirrors': 'https://mirrors.ctan.org/macros/latex/base.zip',
+  'jenkins-downloads': 'https://get.jenkins.io/war-stable/2.479.3/jenkins.war',
+  'jenkins-archives': 'https://archives.jenkins.io/war-stable/2.479.3/jenkins.war',
+  'arxiv-export': 'https://export.arxiv.org/api/query?id_list=1706.03762'
 };
 
 export interface UsageExample {
@@ -172,9 +260,35 @@ function singlePlatformUsage(key: string, origin: string): UsageExample | undefi
     maven: base =>
       `<mirror>\n  <id>suki-get</id>\n  <mirrorOf>central</mirrorOf>\n  <url>${base}maven2/</url>\n</mirror>`
   };
+  commands.yarn = base => `yarn config set registry ${base}`;
+  commands.mavencentral = commands.maven;
+  commands['cran-cloud'] = commands.cran;
+  commands['debian-security'] = base => `deb ${base}debian-security bookworm-security main`;
+  commands['ubuntu-security'] = base => `deb ${base}ubuntu noble-security main universe`;
+  commands['ubuntu-ports'] = base => `deb ${base}ubuntu-ports noble main universe`;
+  commands['ubuntu-old'] = base => `deb ${base}ubuntu kinetic main universe`;
+  commands['cargo-index'] = base =>
+    `[source.crates-io]\nreplace-with = "suki-get"\n\n[source.suki-get]\nregistry = "sparse+${base}"`;
+  commands.rust = base =>
+    `RUSTUP_DIST_SERVER=${base.replace(/\/$/, '')} rustup toolchain install stable`;
   const command = commands[key];
   if (command) {
     return { original: command(`${platform.upstream}/`), accelerated: command(prefix) };
+  }
+  const sample = examples[key];
+  if (sample && platform.category !== 'ai') {
+    return {
+      title: '下载资源',
+      original: `curl -fL -o "<文件名>" "${sample}"`,
+      accelerated: `curl -fL -o "<文件名>" "${resolveUrl(sample, origin).convertedUrl}"`
+    };
+  }
+  if (platform.category === 'code' || platform.category === 'resource' || key === 'apachecdn') {
+    return {
+      title: '访问资源',
+      original: `curl -fL "${platform.upstream}/<资源路径>?<原始查询参数>"`,
+      accelerated: `curl -fL "${prefix}<资源路径>?<原始查询参数>"`
+    };
   }
   if (platform.category === 'ai') {
     return {
@@ -233,6 +347,20 @@ export function platformUsage(key: string, origin: string): UsageExample[] {
     aosp: 'platform/frameworks/base'
   };
   const scenarios: { title: string; path: string; file?: string }[] = [];
+  if (key === 'raw') {
+    scenarios.push(
+      {
+        title: '下载分支中的原始文件',
+        path: 'shenyefan/rule/refs/heads/main/Mihomo.yaml',
+        file: 'Mihomo.yaml'
+      },
+      {
+        title: '下载指定标签或提交的原始文件',
+        path: '<用户>/<仓库>/<标签或提交>/<文件路径>',
+        file: '<文件名>'
+      }
+    );
+  }
   const repository = repositories[key];
   if (repository) {
     scenarios.push({ title: '克隆仓库', path: `${repository}${key === 'aosp' ? '' : '.git'}` });

@@ -75,6 +75,24 @@ function DocumentationHome() {
         <pre className='wiki-code' aria-label='自动识别文件下载示例' tabIndex={0}>
           <code>{`curl -fL -o source.zip "${origin}/https://github.com/microsoft/vscode/archive/refs/heads/main.zip"`}</code>
         </pre>
+        <p>raw.githubusercontent.com 原始文件链接同样支持首页转换，也可直接拼接完整地址访问。</p>
+        <pre className='wiki-code' aria-label='GitHub 原始文件地址示例' tabIndex={0}>
+          <code>{`# 平台前缀\n${origin}/raw/shenyefan/rule/refs/heads/main/Mihomo.yaml\n\n# 自动识别\n${origin}/https://raw.githubusercontent.com/shenyefan/rule/refs/heads/main/Mihomo.yaml`}</code>
+        </pre>
+      </section>
+      <section className='wiki-section'>
+        <h2>主站之外的资源地址</h2>
+        <p>
+          同一平台的原始文件、归档、附件和 CDN 可能使用不同域名。本站同时识别 GitHub 与 Gist
+          文件域名、Hugging Face 的下载及 Xet 存储域名，以及
+          Maven、Gradle、Cargo、Rust、NuGet、Apache 等资源入口。
+        </p>
+        <p>
+          软件包索引中的后续下载地址会按已支持的平台改写。签名链接需保留原始路径和完整查询参数；具体域名、前缀与命令可在侧栏搜索。
+        </p>
+        <pre className='wiki-code' aria-label='附属资源域名示例' tabIndex={0}>
+          <code>{`# GitHub 归档\n${origin}/https://codeload.github.com/microsoft/vscode/zip/refs/heads/main\n\n# Maven Central\n${origin}/https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.pom\n\n# Cargo 软件包\n${origin}/https://static.crates.io/crates/serde/serde-1.0.219.crate`}</code>
+        </pre>
       </section>
       <section className='wiki-section'>
         <h2>容器镜像：默认 Docker Hub</h2>

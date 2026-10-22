@@ -19,18 +19,20 @@ export const DISCOVERY_PATH = '/.well-known/suki-get.json';
 function definePlatform(
   upstream: string,
   category: string,
-  conversion: Partial<PlatformConversion> = {}
+  conversion: Partial<PlatformConversion> & Pick<PlatformDefinition, 'protocol'> = {}
 ): PlatformDefinition {
+  const { protocol, ...conversionRules } = conversion;
   const upstreamPath = new URL(upstream).pathname.replace(/\/$/, '');
   return {
     upstream,
     category,
+    ...(protocol ? { protocol } : {}),
     conversion: {
       rule: 'prefix',
       matchPathPrefix: upstreamPath,
       stripPathPrefix: upstreamPath,
       rootRoute: false,
-      ...conversion
+      ...conversionRules
     }
   };
 }
@@ -38,6 +40,7 @@ function definePlatform(
 export const PLATFORM_DEFINITIONS: Record<string, PlatformDefinition> = {
   // Code Repositories & Version Control
   gh: definePlatform('https://github.com', 'code'),
+  raw: definePlatform('https://raw.githubusercontent.com', 'code'),
   gist: definePlatform('https://gist.github.com', 'code'),
   gl: definePlatform('https://gitlab.com', 'code'),
   gitea: definePlatform('https://gitea.com', 'code'),
@@ -142,7 +145,78 @@ export const PLATFORM_DEFINITIONS: Record<string, PlatformDefinition> = {
   'cr-heroku': definePlatform('https://registry.heroku.com', 'container'),
   'cr-suse': definePlatform('https://registry.suse.com', 'container'),
   'cr-opensuse': definePlatform('https://registry.opensuse.org', 'container'),
-  'cr-gitpod': definePlatform('https://registry.gitpod.io', 'container')
+  'cr-gitpod': definePlatform('https://registry.gitpod.io', 'container'),
+
+  // Official resource hosts used by the platforms above.
+  codeload: definePlatform('https://codeload.github.com', 'code'),
+  gistfiles: definePlatform('https://gist.githubusercontent.com', 'code'),
+  githubapi: definePlatform('https://api.github.com', 'code', { protocol: 'api' }),
+  githubassets: definePlatform('https://release-assets.githubusercontent.com', 'code'),
+  githubobjects: definePlatform('https://objects.githubusercontent.com', 'code'),
+  githubobjectsorigin: definePlatform('https://objects-origin.githubusercontent.com', 'code'),
+  githubreleases: definePlatform('https://github-releases.githubusercontent.com', 'code'),
+  githubregistry: definePlatform('https://github-registry-files.githubusercontent.com', 'code'),
+  githublfs: definePlatform('https://github-cloud.githubusercontent.com', 'code'),
+  githublfss3: definePlatform('https://github-cloud.s3.amazonaws.com', 'code'),
+  githubcontainers: definePlatform('https://pkg-containers.githubusercontent.com', 'code'),
+  sfdownloads: definePlatform('https://downloads.sourceforge.net', 'code'),
+  'hfhub-short': definePlatform('https://hf.co', 'code', { protocol: 'api' }),
+  'hfhub-com': definePlatform('https://huggingface.com', 'code', { protocol: 'api' }),
+  'hfhub-cn': definePlatform('https://huggingface.cn', 'code', { protocol: 'api' }),
+  'hflfs-global': definePlatform('https://cdn-lfs.hf.co', 'code'),
+  'hflfs-us': definePlatform('https://cdn-lfs-us-1.hf.co', 'code'),
+  'hflfs-eu': definePlatform('https://cdn-lfs-eu-1.hf.co', 'code'),
+  'hfxet-server-us': definePlatform('https://cas-server.xethub.hf.co', 'code', { protocol: 'api' }),
+  'hfxet-server-eu': definePlatform('https://cas-server.xethub-eu.hf.co', 'code', {
+    protocol: 'api'
+  }),
+  'hfxet-transfer-us': definePlatform('https://transfer.xethub.hf.co', 'code', { protocol: 'api' }),
+  'hfxet-transfer-eu': definePlatform('https://transfer.xethub-eu.hf.co', 'code', {
+    protocol: 'api'
+  }),
+  'hfxet-bridge': definePlatform('https://cas-bridge.xethub.hf.co', 'code'),
+  yarn: definePlatform('https://registry.yarnpkg.com', 'package'),
+  mavencentral: definePlatform('https://repo.maven.apache.org', 'package'),
+  apachecdn: definePlatform('https://dlcdn.apache.org', 'package'),
+  apachearchive: definePlatform('https://archive.apache.org', 'package'),
+  gradledist: definePlatform('https://services.gradle.org', 'package'),
+  gradlecdn: definePlatform('https://downloads.gradle.org', 'package'),
+  'cargo-index': definePlatform('https://index.crates.io', 'package'),
+  'cargo-files': definePlatform('https://static.crates.io', 'package'),
+  rust: definePlatform('https://static.rust-lang.org', 'package'),
+  'nuget-gallery': definePlatform('https://www.nuget.org', 'package'),
+  'nuget-files': definePlatform('https://globalcdn.nuget.org', 'package'),
+  'nuget-searchprimary': definePlatform('https://azuresearch-usnc.nuget.org', 'package'),
+  'nuget-searchsecondary': definePlatform('https://azuresearch-ussc.nuget.org', 'package'),
+  'cran-cloud': definePlatform('https://cloud.r-project.org', 'package'),
+  'ctan-mirrors': definePlatform('https://mirrors.ctan.org', 'package'),
+  'debian-security': definePlatform('https://security.debian.org', 'linux'),
+  'ubuntu-security': definePlatform('https://security.ubuntu.com', 'linux'),
+  'ubuntu-ports': definePlatform('https://ports.ubuntu.com', 'linux'),
+  'ubuntu-old': definePlatform('https://old-releases.ubuntu.com', 'linux'),
+  'jenkins-downloads': definePlatform('https://get.jenkins.io', 'resource'),
+  'jenkins-archives': definePlatform('https://archives.jenkins.io', 'resource'),
+  'arxiv-export': definePlatform('https://export.arxiv.org', 'resource'),
+  'ip-coherecom': definePlatform('https://api.cohere.com', 'ai'),
+  'ip-togetherai': definePlatform('https://api.together.ai', 'ai'),
+  'ip-falqueue': definePlatform('https://queue.fal.run', 'ai'),
+  'cr-gcrus': definePlatform('https://us.gcr.io', 'container'),
+  'cr-gcreu': definePlatform('https://eu.gcr.io', 'container'),
+  'cr-gcrasia': definePlatform('https://asia.gcr.io', 'container'),
+  'cr-redhatpublic': definePlatform('https://registry.access.redhat.com', 'container'),
+  'cr-redhatconnect': definePlatform('https://registry.connect.redhat.com', 'container'),
+  'hfcdn-aws': definePlatform('https://aws.cdn.hf.co', 'code'),
+  'hfcdn-us-aws': definePlatform('https://us.aws.cdn.hf.co', 'code'),
+  'hfcdn-us-east-1-aws': definePlatform('https://us-east-1.aws.cdn.hf.co', 'code'),
+  'hfcdn-us-west-2-aws': definePlatform('https://us-west-2.aws.cdn.hf.co', 'code'),
+  'hfcdn-eu-west-3-aws': definePlatform('https://eu-west-3.aws.cdn.hf.co', 'code'),
+  'hfcdn-ap-southeast-1-aws': definePlatform('https://ap-southeast-1.aws.cdn.hf.co', 'code'),
+  'hfcdn-us-gcp': definePlatform('https://us.gcp.cdn.hf.co', 'code'),
+  'hfcdn-us-east1-us-gcp': definePlatform('https://us-east1.us.gcp.cdn.hf.co', 'code'),
+  'hfcdn-us-central1-us-gcp': definePlatform('https://us-central1.us.gcp.cdn.hf.co', 'code'),
+  'hfcdn-us-west4-us-gcp': definePlatform('https://us-west4.us.gcp.cdn.hf.co', 'code'),
+  'hfcdn-europe-west4-us-gcp': definePlatform('https://europe-west4.us.gcp.cdn.hf.co', 'code'),
+  'hfcdn-asia-southeast1-us-gcp': definePlatform('https://asia-southeast1.us.gcp.cdn.hf.co', 'code')
 };
 
 /**
@@ -163,6 +237,7 @@ export interface PlatformConversion {
 }
 
 export interface PlatformDefinition {
+  protocol?: 'api';
   upstream: string;
   category: string;
   conversion: PlatformConversion;

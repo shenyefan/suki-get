@@ -120,6 +120,7 @@ function PlatformDocument() {
             支持 Git 克隆、分支与标签源码归档、Release 附件及仓库原始文件下载。下载文件应使用
             raw、archive 或 releases/download 地址；blob 地址展示的是文件页面。 GitHub 默认可省略
             /gh/，直接填写用户和仓库路径；若用户名与本站入口重名，使用 /gh/ 明确指定。
+            raw.githubusercontent.com 的原始文件链接也可直接粘贴到首页，转换后使用 /raw/ 路径。
           </p>
         )}
       </section>

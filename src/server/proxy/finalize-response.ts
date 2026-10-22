@@ -50,6 +50,7 @@ async function finalizeErrorResponse({
   }
 
   if (
+    requestContext.isAPI ||
     requestContext.isAI ||
     requestContext.isHF ||
     requestContext.isGit ||
@@ -100,7 +101,7 @@ async function finalizeSuccessfulResponse({
   targetUrl?: string;
   url: URL;
 }): Promise<Response> {
-  const { isAI, isDocker, isGit, isGitLFS, isHF } = requestContext;
+  const { isAPI, isAI, isDocker, isGit, isGitLFS, isHF } = requestContext;
 
   let responseBody: string | ReadableStream<Uint8Array> | null = response.body;
   let rewrittenContentLength = null;
@@ -122,6 +123,8 @@ async function finalizeSuccessfulResponse({
   const headers = new Headers(response.headers);
 
   if (rewrittenContentLength !== null) {
+    // Upstream validators and encodings describe the original bytes, not this rewritten body.
+    for (const name of ['ETag', 'Content-MD5', 'Digest', 'Content-Encoding']) headers.delete(name);
     headers.set('Content-Length', String(rewrittenContentLength));
   }
 
@@ -141,7 +144,7 @@ async function finalizeSuccessfulResponse({
     response
   });
 
-  if (!isGit && !isGitLFS && !isDocker && !isAI && !isHF) {
+  if (!isGit && !isGitLFS && !isDocker && !isAI && !isHF && !isAPI) {
     headers.set('Cache-Control', cachePolicy.cacheControl);
 
     if (cachePolicy.mode === 'private') {

@@ -148,7 +148,9 @@ export function convertResourceInput(
       'conda',
       'gem',
       'dotnet',
-      'go'
+      'go',
+      'cargo',
+      'rustup'
     ];
     if (
       !supported.includes(command) ||
@@ -196,13 +198,16 @@ export function convertResourceInput(
         continue;
       }
       const urlOption = token.value.match(
-        /^(--(?:registry|index-url|extra-index-url|source|channel)|GOPROXY)=(https?:\/\/.*)$/
+        /^(--(?:registry|index|index-url|extra-index-url|source|channel)|GOPROXY|RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT)=((?:sparse\+)?https?:\/\/.*)$/
       );
-      const url = urlOption?.[2] || (/^https?:\/\//i.test(token.value) ? token.value : undefined);
+      const url =
+        urlOption?.[2] ||
+        (/^(?:sparse\+)?https?:\/\//i.test(token.value) ? token.value : undefined);
       if (!url) continue;
       const previous = tokens[index - 1]?.value;
       const baseOptions = [
         '--registry',
+        '--index',
         '--index-url',
         '--extra-index-url',
         '--source',
@@ -214,7 +219,8 @@ export function convertResourceInput(
         (['npm', 'pnpm', 'yarn'].includes(command) && previous === 'registry') ||
         ((command === 'pip' || command === 'pip3' || command === 'uv') && previous === '-i') ||
         (command === 'conda' && previous === '-c');
-      const converted = convertCommandUrl(url, baseUrl, allowBase);
+      const sparse = url.startsWith('sparse+');
+      const converted = `${sparse ? 'sparse+' : ''}${convertCommandUrl(sparse ? url.slice(7) : url, baseUrl, allowBase)}`;
       const raw = source.slice(token.start, token.end);
       replacements.push({
         start: token.start,
