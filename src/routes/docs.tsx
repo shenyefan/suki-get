@@ -27,7 +27,7 @@ import {
   SidebarTrigger,
   useSidebar
 } from '../components/ui/sidebar';
-import { categories, platformName, platforms } from '../lib/platform-docs';
+import { categories, platformGuide, platformGuides, guideSearchTarget } from '../lib/platform-docs';
 
 export const Route = createFileRoute('/docs')({ component: DocsLayout });
 
@@ -35,11 +35,7 @@ function DocumentationSidebar() {
   const [query, setQuery] = useState('');
   const { pathname } = useLocation();
   const { setOpenMobile } = useSidebar();
-  const filtered = platforms.filter(platform =>
-    `${platformName(platform.key)} ${platform.key} ${platform.upstream} ${categories[platform.category].title}`
-      .toLowerCase()
-      .includes(query.trim().toLowerCase())
-  );
+  const filtered = platformGuides.filter(guide => guideSearchTarget(guide, query) !== undefined);
   return (
     <Sidebar className='docs-sidebar'>
       <SidebarHeader>
@@ -90,8 +86,12 @@ function DocumentationSidebar() {
                         isActive={pathname === `/docs/${platform.key}`}
                         onClick={() => setOpenMobile(false)}
                       >
-                        <Link to='/docs/$platform' params={{ platform: platform.key }}>
-                          <span>{platformName(platform.key)}</span>
+                        <Link
+                          to='/docs/$platform'
+                          params={{ platform: platform.key }}
+                          hash={guideSearchTarget(platform, query)}
+                        >
+                          <span>{platform.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -135,7 +135,7 @@ function DocsLayout() {
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage>{platformName(key)}</BreadcrumbPage>
+                    <BreadcrumbPage>{platformGuide(key)?.title || key}</BreadcrumbPage>
                   </BreadcrumbItem>
                 </>
               )}

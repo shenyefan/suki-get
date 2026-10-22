@@ -485,3 +485,175 @@ export function platformUsage(key: string, origin: string): UsageExample[] {
   const usage = singlePlatformUsage(key, origin);
   return usage ? [usage] : [];
 }
+
+interface GuideDefinition {
+  title?: string;
+  sections: Record<string, string[]>;
+}
+
+// Documentation follows products; proxy endpoint keys and public resource routes stay independent.
+const guideDefinitions: Record<string, GuideDefinition> = {
+  gh: {
+    sections: {
+      仓库与文件下载: ['gh'],
+      'Raw 原始文件': ['raw'],
+      'Codeload 源码归档': ['codeload'],
+      Gist: ['gist', 'gistfiles'],
+      'Release 附件与对象文件': [
+        'githubassets',
+        'githubobjects',
+        'githubobjectsorigin',
+        'githubreleases',
+        'githubregistry'
+      ],
+      'Git LFS 文件': ['githublfs', 'githublfss3'],
+      'GitHub API': ['githubapi'],
+      容器镜像: ['cr-ghcr'],
+      镜像层文件: ['githubcontainers'],
+      'GitHub Models': ['ip-githubmodels']
+    }
+  },
+  gl: { sections: { 仓库与文件下载: ['gl'], 容器镜像: ['cr-gitlab'] } },
+  sf: { sections: { 项目与发行文件: ['sf'], 直接下载: ['sfdownloads'] } },
+  hf: {
+    sections: {
+      'Hub 与域名别名': ['hf', 'hfhub-short', 'hfhub-com', 'hfhub-cn'],
+      'LFS 文件与区域下载': ['hflfs-global', 'hflfs-us', 'hflfs-eu', 'hfxet-bridge'],
+      'Xet 存储 API': ['hfxet-server-us', 'hfxet-server-eu'],
+      'Xet 文件传输': ['hfxet-transfer-us', 'hfxet-transfer-eu'],
+      'AWS 区域 CDN': [
+        'hfcdn-aws',
+        'hfcdn-us-aws',
+        'hfcdn-us-east-1-aws',
+        'hfcdn-us-west-2-aws',
+        'hfcdn-eu-west-3-aws',
+        'hfcdn-ap-southeast-1-aws'
+      ],
+      'GCP 区域 CDN': [
+        'hfcdn-us-gcp',
+        'hfcdn-us-east1-us-gcp',
+        'hfcdn-us-central1-us-gcp',
+        'hfcdn-us-west4-us-gcp',
+        'hfcdn-europe-west4-us-gcp',
+        'hfcdn-asia-southeast1-us-gcp'
+      ],
+      '推理 API': ['ip-huggingface']
+    }
+  },
+  pypi: { sections: { 软件包索引: ['pypi'], 软件包文件: ['pypi-files'] } },
+  conda: { sections: { 默认仓库: ['conda'], 社区仓库: ['conda-community'] } },
+  maven: { sections: { 'Maven Central': ['maven', 'mavencentral'] } },
+  apache: { sections: { 当前发行版本: ['apache', 'apachecdn'], 历史版本归档: ['apachearchive'] } },
+  gradle: { sections: { 插件仓库: ['gradle'], 'Gradle 发行下载': ['gradledist', 'gradlecdn'] } },
+  homebrew: {
+    sections: {
+      源码仓库: ['homebrew'],
+      'Formula API': ['homebrew-api'],
+      'Bottles 二进制包': ['homebrew-bottles']
+    }
+  },
+  cran: { sections: { 'CRAN 镜像': ['cran', 'cran-cloud'] } },
+  ctan: { sections: { 主站与自动镜像: ['ctan', 'ctan-mirrors'] } },
+  nuget: {
+    sections: {
+      'V3 软件包源': ['nuget'],
+      'Gallery 与 V2 下载': ['nuget-gallery'],
+      软件包文件: ['nuget-files'],
+      搜索服务: ['nuget-searchprimary', 'nuget-searchsecondary']
+    }
+  },
+  crates: {
+    title: 'Rust / Cargo',
+    sections: {
+      'Cargo 稀疏索引': ['cargo-index'],
+      软件包文件: ['cargo-files'],
+      'crates.io API': ['crates'],
+      'Rust 工具链': ['rust']
+    }
+  },
+  debian: { sections: { 主软件源: ['debian'], 安全更新: ['debian-security'] } },
+  ubuntu: {
+    sections: {
+      主软件源: ['ubuntu'],
+      安全更新: ['ubuntu-security'],
+      'Ports 架构软件源': ['ubuntu-ports'],
+      历史版本: ['ubuntu-old']
+    }
+  },
+  opensuse: { sections: { 软件源: ['opensuse'], 容器镜像: ['cr-opensuse'] } },
+  arxiv: { sections: { 论文资源: ['arxiv'], 导出与查询: ['arxiv-export'] } },
+  jenkins: {
+    sections: {
+      更新中心: ['jenkins'],
+      发行与插件下载: ['jenkins-downloads'],
+      历史版本: ['jenkins-archives']
+    }
+  },
+  'ip-cohere': { sections: { 'API 域名': ['ip-cohere', 'ip-coherecom'] } },
+  'ip-together': { sections: { 'API 域名': ['ip-together', 'ip-togetherai'] } },
+  'ip-falai': { sections: { 同步调用: ['ip-falai'], 异步队列: ['ip-falqueue'] } },
+  'cr-gcr': { sections: { 全球与区域仓库: ['cr-gcr', 'cr-gcrus', 'cr-gcreu', 'cr-gcrasia'] } },
+  'cr-redhat': {
+    sections: {
+      账号认证仓库: ['cr-redhat'],
+      公共镜像: ['cr-redhatpublic'],
+      合作伙伴仓库: ['cr-redhatconnect']
+    }
+  }
+};
+
+const guideOwners = new Map(
+  Object.entries(guideDefinitions).flatMap(([key, definition]) =>
+    Object.values(definition.sections).flatMap(keys => keys.map(member => [member, key] as const))
+  )
+);
+const platformsByKey = Object.fromEntries(platforms.map(platform => [platform.key, platform]));
+
+export const platformGuides = platforms
+  .filter(
+    platform => !guideOwners.has(platform.key) || guideOwners.get(platform.key) === platform.key
+  )
+  .map(platform => {
+    const definition = guideDefinitions[platform.key];
+    return {
+      key: platform.key,
+      title: definition?.title || platformName(platform.key),
+      category: platform.category,
+      sections: definition
+        ? Object.entries(definition.sections).map(([title, keys]) => ({
+            id: keys[0],
+            title,
+            platforms: keys.map(key => platformsByKey[key])
+          }))
+        : [{ id: platform.key, title: '平台地址与用法', platforms: [platform] }]
+    };
+  });
+
+export function platformGuide(key: string) {
+  return platformGuides.find(guide => guide.key === (guideOwners.get(key) || key));
+}
+
+/** Search includes every child hostname and operation while presenting one result per product. */
+export function guideSearchTarget(
+  guide: (typeof platformGuides)[number],
+  query: string
+): string | undefined {
+  const term = query.trim().toLowerCase();
+  if (
+    !term ||
+    `${guide.title} ${guide.key} ${categories[guide.category].title}`.toLowerCase().includes(term)
+  )
+    return '';
+  const exactHost = guide.sections.find(section =>
+    section.platforms.some(
+      platform =>
+        platform.upstream.toLowerCase() === term || new URL(platform.upstream).host === term
+    )
+  );
+  if (exactHost) return exactHost.id;
+  return guide.sections.find(section =>
+    `${section.title} ${section.platforms.map(platform => `${platformName(platform.key)} ${platform.key} ${platform.upstream} ${categories[platform.category].title}`).join(' ')}`
+      .toLowerCase()
+      .includes(term)
+  )?.id;
+}

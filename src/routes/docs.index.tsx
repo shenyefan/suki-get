@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { categories, platforms } from '../lib/platform-docs';
+import { categories, platforms, platformGuides } from '../lib/platform-docs';
 
 export const Route = createFileRoute('/docs/')({
   head: () => ({ meta: [{ title: '文档 · Suki Get' }] }),
@@ -22,7 +22,9 @@ function DocumentationHome() {
         <p className='eyebrow'>THE FIELD GUIDE</p>
         <h1>平台与用法。</h1>
         <p>找到你的平台，让下一个请求更顺畅。</p>
-        <Badge variant='outline'>{platforms.length} 个平台 · 6 类资源</Badge>
+        <Badge variant='outline'>
+          {platformGuides.length} 个平台 · {platforms.length} 个资源入口
+        </Badge>
       </div>
       <section className='docs-quickstart' aria-labelledby='quickstart-title'>
         <div>
@@ -131,7 +133,7 @@ function DocumentationHome() {
         </div>
         <div className='docs-category-grid'>
           {Object.entries(categories).map(([key, category], index) => {
-            const items = platforms.filter(platform => platform.category === key);
+            const items = platformGuides.filter(platform => platform.category === key);
             return (
               <Button asChild variant='ghost' key={key} className='docs-category-link'>
                 <Link to='/docs/$platform' params={{ platform: items[0].key }}>
