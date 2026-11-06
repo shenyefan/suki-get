@@ -84,6 +84,7 @@ function PlatformDocument() {
               <p>
                 GitHub 默认省略 /gh/，直接填写用户与仓库路径；若用户名与本站入口重名，使用 /gh/
                 明确指定。文件下载使用 raw、archive 或 releases/download 地址；blob 地址是文件页面。
+                浏览器打开仓库或 Release 页面会进入匿名只读预览；登录、注册与账号路径已禁用。
               </p>
             )}
             {representative.key === 'pypi' && (

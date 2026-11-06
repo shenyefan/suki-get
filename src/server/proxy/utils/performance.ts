@@ -2,8 +2,6 @@
  * Performance monitoring utilities for Suki Get
  */
 
-import { addSecurityHeaders } from './security';
-
 /**
  * Monitors performance metrics during request processing.
  *
@@ -52,15 +50,13 @@ export class PerformanceMonitor {
  * Adds performance metrics to response headers.
  *
  * Creates a new response with an X-Performance-Metrics header containing
- * timing data from the PerformanceMonitor instance. Also ensures security
- * headers are included.
+ * timing data from the PerformanceMonitor instance.
  *
  * **Note:** This header is only added to non-protocol responses (not Git/Docker/AI).
  */
 export function addPerformanceHeaders(response: Response, monitor: PerformanceMonitor): Response {
   const headers = new Headers(response.headers);
   headers.set('X-Performance-Metrics', JSON.stringify(monitor.getMetrics()));
-  addSecurityHeaders(headers);
   return new Response(response.body, {
     status: response.status,
     headers

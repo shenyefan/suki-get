@@ -6,6 +6,7 @@ import { normalizeEffectivePath, resolveTarget } from './resolve-target';
 import { getDefaultCache, tryReadCachedResponse } from './upstream/cache';
 import { resolveCachePolicy } from './upstream/cache-policy';
 import { fetchUpstreamResponse } from './upstream/fetch-upstream';
+import { isGithubAccountPath, isGithubDataRequest } from './utils/github-page';
 import { PerformanceMonitor, addPerformanceHeaders } from './utils/performance';
 import { addCorsHeaders, addSecurityHeaders, createErrorResponse } from './utils/security';
 import { getAllowedMethods, isProtocolRequest, validateRequest } from './utils/validation';
@@ -92,8 +93,10 @@ export async function handleRequest(
         }
 
         if (!response) {
-          // Handle Docker authentication explicitly
-          if (
+          // The GitHub preview is anonymous: account routes never reach the upstream.
+          if (isGithubAccountPath(effectivePath)) {
+            response = createErrorResponse('Login is not supported', 403);
+          } else if (
             isDocker &&
             (url.pathname === '/v2/auth' || /^\/cr\/[^/]+\/v2\/auth\/?$/.test(url.pathname))
           ) {
@@ -107,7 +110,9 @@ export async function handleRequest(
             } else {
               const { cacheTargetUrl, platform, targetUrl } = resolvedTarget;
               const authorization = request.headers.get('Authorization');
+              // Fragment and JSON responses share URLs with pages, so they must not be cached.
               const hasSensitiveHeaders = Boolean(
+                (platform === 'gh' && isGithubDataRequest(request)) ||
                 authorization ||
                 request.headers.get('Cookie') ||
                 request.headers.get('Proxy-Authorization')

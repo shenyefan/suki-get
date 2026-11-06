@@ -118,6 +118,8 @@ GitHub 默认省略 `/gh/`，例如
 `git clone https://get.syf.sh/microsoft/vscode.git`。首页生成 GitHub 链接或命令时默认采用这种写法；若用户名与已有平台或页面入口重名，则保留
 `/gh/`。
 
+在浏览器中打开 GitHub 仓库或 Release 页面时，本站提供匿名只读预览：页面样式、脚本与图片均经本站代理，每个页面顶部（不吸顶）显示中英双语的“非官方网站，仅供预览”提示；登录、注册与账号路径返回 403，统计上报不会被转发。
+
 `raw.githubusercontent.com` 原始文件链接使用 `/raw/`
 前缀，并支持完整 URL 自动识别与下载命令转换。
 
