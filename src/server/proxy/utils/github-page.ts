@@ -115,7 +115,10 @@ export function createGithubPreviewResponse(response: Response, origin: string):
     .on('a[href], link[href]', proxyAssetUrls('href'))
     .on('[data-href]', proxyAssetUrls('data-href'))
     .on('[data-base-href]', proxyAssetUrls('data-base-href'))
-    .on('img[src], source[src], script[src], video[src], audio[src]', proxyAssetUrls('src'))
+    .on(
+      'img[src], source[src], script[src], video[src], audio[src], include-fragment[src]',
+      proxyAssetUrls('src')
+    )
     .on('img[srcset], source[srcset]', proxyAssetUrls('srcset'))
     .on('script[type="importmap"], script[type="application/json"]', {
       text(chunk) {
