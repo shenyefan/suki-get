@@ -20,7 +20,7 @@ workerd 部署。
 | `src/server/proxy/`           | 代理核心：创建运行配置与请求上下文、组织请求处理链、提供实例发现响应和共享服务端类型。                                                          |
 | `src/server/proxy/protocols/` | Git / Git LFS、Docker / OCI、AI、Hugging Face 等协议识别、请求头和认证处理。                                                                    |
 | `src/server/proxy/upstream/`  | 上游通信：生成请求选项、转发、超时、重试、匿名容器令牌重试、缓存策略与缓存读取。                                                                |
-| `src/server/proxy/utils/`     | 代理链内复用的请求校验、CORS、安全头、性能监测和文本改写工具。此处是服务端工具，不供页面导入。                                                  |
+| `src/server/proxy/utils/`     | 代理链内复用的请求校验、CORS、安全头、性能监测、文本改写与 GitHub 页面只读预览工具。此处是服务端工具，不供页面导入。                            |
 
 ### 静态资源 `public/`
 

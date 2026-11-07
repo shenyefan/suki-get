@@ -122,6 +122,13 @@ const names: Record<string, string> = {
   githublfs: 'GitHub LFS 文件',
   githublfss3: 'GitHub LFS 对象存储',
   githubcontainers: 'GitHub 镜像层文件',
+  githubstatic: 'GitHub 页面样式资源',
+  githubavatars: 'GitHub 头像',
+  githubuserimages: 'GitHub 用户图片',
+  githubcamo: 'GitHub 图片代理',
+  githubprivateimages: 'GitHub 附件图片',
+  githubrepoimages: 'GitHub 仓库社交预览图',
+  githubopengraph: 'GitHub 分享预览图',
   sfdownloads: 'SourceForge 文件下载',
   'hfhub-short': 'Hugging Face 短域名',
   'hfhub-com': 'Hugging Face .com',
@@ -510,6 +517,15 @@ const guideDefinitions: Record<string, GuideDefinition> = {
       'GitHub API': ['githubapi'],
       容器镜像: ['cr-ghcr'],
       镜像层文件: ['githubcontainers'],
+      页面预览资源: [
+        'githubstatic',
+        'githubavatars',
+        'githubuserimages',
+        'githubcamo',
+        'githubprivateimages',
+        'githubrepoimages',
+        'githubopengraph'
+      ],
       'GitHub Models': ['ip-githubmodels']
     }
   },

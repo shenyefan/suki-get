@@ -8,6 +8,11 @@ import {
   shouldRewriteTextResponse
 } from './utils/rewrite';
 import { resolveCachePolicy, resolveResponseCachePolicy } from './upstream/cache-policy';
+import {
+  GITHUB_PAGE_CSP,
+  createGithubPreviewResponse,
+  isGithubPageResponse
+} from './utils/github-page';
 import { addSecurityHeaders, createErrorResponse } from './utils/security';
 
 /**
@@ -121,6 +126,17 @@ async function finalizeSuccessfulResponse({
   }
 
   const headers = new Headers(response.headers);
+  const isGithubPage =
+    response.body !== null &&
+    isGithubPageResponse(platform, response.headers.get('content-type') || '');
+
+  if (isGithubPage) {
+    responseBody = createGithubPreviewResponse(response, url.origin).body;
+    // The preview is anonymous: drop upstream cookies, and validators for the original bytes.
+    for (const name of ['Set-Cookie', 'ETag', 'Content-Length', 'Content-Encoding']) {
+      headers.delete(name);
+    }
+  }
 
   if (rewrittenContentLength !== null) {
     // Upstream validators and encodings describe the original bytes, not this rewritten body.
@@ -158,7 +174,7 @@ async function finalizeSuccessfulResponse({
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Accept-Ranges', 'bytes');
 
-    if (!headers.has('Content-Length') && response.status === 200) {
+    if (!isGithubPage && !headers.has('Content-Length') && response.status === 200) {
       try {
         const contentLength = response.headers.get('Content-Length');
         if (contentLength) {
@@ -170,6 +186,9 @@ async function finalizeSuccessfulResponse({
     }
 
     addSecurityHeaders(headers);
+    if (isGithubPage) {
+      headers.set('Content-Security-Policy', GITHUB_PAGE_CSP);
+    }
   }
 
   let finalizedResponse = new Response(responseBody, {

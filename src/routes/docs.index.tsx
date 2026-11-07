@@ -60,6 +60,7 @@ function DocumentationHome() {
           若用户名与本站平台前缀或页面入口重名，请使用 /gh/ 前缀明确指定
           GitHub；首页遇到这种情况会自动保留前缀。
         </p>
+        <p>在浏览器中直接打开仓库、Release 等页面时，本站提供匿名只读预览，方便查找发行版文件。</p>
       </section>
       <section className='wiki-section'>
         <h2>两种地址用法</h2>

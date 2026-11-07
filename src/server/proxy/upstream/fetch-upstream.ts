@@ -12,6 +12,7 @@ import {
 } from '../protocols/docker';
 import { configureGitHeaders } from '../protocols/git';
 import { configureHuggingFaceHeaders } from '../protocols/huggingface';
+import { forwardGithubDataHeaders, isGithubDataRequest } from '../utils/github-page';
 import { createErrorResponse } from '../utils/security';
 
 const MEDIA_FILE_PATTERN =
@@ -25,6 +26,7 @@ function createFetchOptions({
   cachePolicy,
   canUseCache,
   config,
+  platform,
   request,
   requestContext,
   shouldPassthroughRequest,
@@ -34,6 +36,7 @@ function createFetchOptions({
   cachePolicy?: { allowFetchCache: boolean; edgeTtl: number };
   canUseCache: boolean;
   config: ApplicationConfig;
+  platform: string;
   request: Request;
   requestContext: RequestTraits & { url: URL };
   shouldPassthroughRequest: boolean;
@@ -93,6 +96,10 @@ function createFetchOptions({
   const origin = request.headers.get('Origin');
   if (origin) {
     requestHeaders.set('Origin', origin);
+  }
+
+  if (platform === 'gh' && isGithubDataRequest(request)) {
+    forwardGithubDataHeaders(request, requestHeaders);
   }
 
   if (authorization) {
@@ -320,6 +327,7 @@ export async function fetchUpstreamResponse({
     cachePolicy,
     canUseCache,
     config,
+    platform,
     request,
     requestContext,
     shouldPassthroughRequest,
