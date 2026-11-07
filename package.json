@@ -17,7 +17,7 @@
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "workerd": "1.20261104.1",
-    "wrangler": "^4.151.3"
+    "wrangler": "^4.157.0"
   },
   "name": "suki-get",
   "license": "AGPL-3.0-or-later",
