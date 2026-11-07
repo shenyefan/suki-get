@@ -61,6 +61,8 @@
     "workerd@1.20261012.1": true,
     "workerd@1.20261019.1": true,
     "workerd@1.20261021.1": true,
+    "workerd@1.20261101.1": true,
+    "workerd@1.20261104.1": true,
     "fsevents@2.3.3": true
   }
 }
